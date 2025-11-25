@@ -39,3 +39,12 @@
 
 # debug information files
 *.dwo
+
+# build directories
+build
+build.debug
+build.release
+
+# others
+.vscode/settings.json
+.vscode/c_cpp_properties.json
