@@ -7,7 +7,7 @@ namespace acacia::model {
 template <typename Coord, size_t Dim>
 class Point
 {
-    using FCoord = float_type<Coord>;
+    using FCoord = float_t<Coord>;
     using Coords = std::array<Coord, Dim>;
 public:
 

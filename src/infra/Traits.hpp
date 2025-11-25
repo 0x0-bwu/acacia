@@ -43,12 +43,12 @@ struct same_bits_float<T>
 } // namespace detail
 
 template <typename T>
-using float_type = typename detail::same_bits_float<std::remove_cv_t<T>>::type;
+using float_t = typename detail::same_bits_float<std::remove_cv_t<T>>::type;
 
 } // namespace acacia::infra::traits
 
 namespace acacia {
 
-using infra::traits::float_type;
+using infra::traits::float_t;
 
 } // namespace acacia

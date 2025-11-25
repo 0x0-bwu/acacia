@@ -1,15 +1,13 @@
 #pragma once
 
-#include "TestCommon.hpp"
-
 #include "acacia/model/Point.hpp"
-
+#include "common/TestCommon.hpp"
 
 using namespace acacia::model;
 using namespace boost::unit_test;
 namespace tt = boost::test_tools;
 
-void t_point()
+void t_model_point()
 {
     BOOST_TEST_CONTEXT("Point construction and comparison")
     {
@@ -142,13 +140,4 @@ void t_point()
         BOOST_TEST(p[1] == 2.0f, tt::tolerance(1e-6f));
         BOOST_TEST(p[2] == 2.0f, tt::tolerance(1e-6f));
     }
-}
-
-extern test_suite * create_model_test_suite()
-{
-    test_suite * ts = BOOST_TEST_SUITE("Model Test Suite");
-
-    ts->add(BOOST_TEST_CASE(&t_point));
-
-    return ts;
 }

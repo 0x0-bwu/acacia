@@ -2,6 +2,7 @@
 
 #include "Traits.hpp"
 
+#include <algorithm>
 #include <cmath>
 
 namespace acacia::infra::math {

@@ -33,6 +33,6 @@ jobs:
 
       - name: Create pull request
         if: success()
-        run: gh pr create -B master -H dev --title 'Merge dev into master' --body 'created by github action'
+        run: gh pr create -B main -H dev --title 'Merge dev into main' --body 'created by github action'
         env:
           GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
