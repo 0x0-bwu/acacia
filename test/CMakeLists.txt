@@ -102,9 +102,34 @@ if (CMAKE_SYSTEM_NAME MATCHES "Darwin")
   	endif()
 endif()
 
+# Windows / MSYS2 support: prefer .dll and use common MSYS2 MinGW prefixes
+if (CMAKE_SYSTEM_NAME MATCHES "Windows" OR WIN32)
+	set(DYLIB_SUFFIX "dll")
+	if(DEFINED ENV{MSYSTEM})
+		message(STATUS "Detected MSYS2 environment: $ENV{MSYSTEM}")
+		if("$ENV{MSYSTEM}" STREQUAL "MINGW64")
+			set(MSYS2_MINGW_PREFIX "/mingw64")
+		elseif("$ENV{MSYSTEM}" STREQUAL "MINGW32")
+			set(MSYS2_MINGW_PREFIX "/mingw32")
+		else()
+			set(MSYS2_MINGW_PREFIX "/mingw64")
+		endif()
+		if(BOOST_INCLUDE_PATH STREQUAL "" AND BOOST_LIBRARY_PATH STREQUAL "")
+			set(BOOST_INCLUDE_PATH ${MSYS2_MINGW_PREFIX}/include)
+			set(BOOST_LIBRARY_PATH ${MSYS2_MINGW_PREFIX}/lib)
+			message(STATUS "Using MSYS2 Boost paths: ${BOOST_INCLUDE_PATH}, ${BOOST_LIBRARY_PATH}")
+		endif()
+	endif()
+endif()
+
 # Boost library
-set(BOOST_INCLUDE_PATH $ENV{BOOST_PATH}/include)
-set(BOOST_LIBRARY_PATH $ENV{BOOST_PATH}/lib)
+if(DEFINED ENV{BOOST_PATH})
+	set(BOOST_INCLUDE_PATH $ENV{BOOST_PATH}/include)
+	set(BOOST_LIBRARY_PATH $ENV{BOOST_PATH}/lib)
+else()
+	set(BOOST_INCLUDE_PATH "")
+	set(BOOST_LIBRARY_PATH "")
+endif()
 message(STATUS "Boost include path: ${BOOST_INCLUDE_PATH}")
 message(STATUS "Boost library path: ${BOOST_LIBRARY_PATH}")
 
@@ -113,11 +138,20 @@ add_definitions("-DBOOST_ALLOW_DEPRECATED_HEADERS")
 add_definitions("-DBOOST_BIND_GLOBAL_PLACEHOLDERS")
 
 ## Link boost_serialization
-set(BOOST_SERIALIZATION_LIB_PATH ${BOOST_LIBRARY_PATH}/libboost_serialization.${DYLIB_SUFFIX})
-if(NOT EXISTS ${BOOST_SERIALIZATION_LIB_PATH})
-	set(BOOST_SERIALIZATION_LIB_PATH ${BOOST_LIBRARY_PATH}/libboost_serialization-mt-x64.${DYLIB_SUFFIX})
-endif()
-if(EXISTS ${BOOST_SERIALIZATION_LIB_PATH})
+set(BOOST_SERIALIZATION_LIB_PATH "")
+set(BOOST_SERIALIZATION_CANDS
+	${BOOST_LIBRARY_PATH}/libboost_serialization.${DYLIB_SUFFIX}
+	${BOOST_LIBRARY_PATH}/libboost_serialization-mt.${DYLIB_SUFFIX}
+	${BOOST_LIBRARY_PATH}/libboost_serialization-mt-x64.${DYLIB_SUFFIX}
+	${BOOST_LIBRARY_PATH}/boost_serialization.${DYLIB_SUFFIX}
+)
+foreach(CANDIDATE ${BOOST_SERIALIZATION_CANDS})
+	if(EXISTS ${CANDIDATE})
+		set(BOOST_SERIALIZATION_LIB_PATH ${CANDIDATE})
+		break()
+	endif()
+endforeach()
+if(BOOST_SERIALIZATION_LIB_PATH)
 	add_library(boost_serialization SHARED IMPORTED)
 	add_compile_definitions(ACACIA_BOOST_SERIALIZATION_SUPPORT)
 	set_target_properties(boost_serialization PROPERTIES IMPORTED_LOCATION ${BOOST_SERIALIZATION_LIB_PATH})
@@ -147,8 +181,13 @@ if(OpenMP_CXX_FOUND)
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
-get_filename_component(ACACIA_LIBRARY_DIR ../include ABSOLUTE)
-include_directories(${ACACIA_LIBRARY_DIR} ${PNG_INCLUDE_DIR} ${BOOST_INCLUDE_PATH})
+# Copy project headers to include under build dir 
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/include")
+file(COPY "${CMAKE_SOURCE_DIR}/../src" DESTINATION "${CMAKE_BINARY_DIR}/include")
+file(RENAME "${CMAKE_BINARY_DIR}/include/src" "${CMAKE_BINARY_DIR}/include/${PROJECT_NAME}")
+
+message(STATUS "Acacia include path: ${CMAKE_BINARY_DIR}/include")
+include_directories(${CMAKE_BINARY_DIR}/include ${PNG_INCLUDE_DIR} ${BOOST_INCLUDE_PATH})
 
 # Add Executable
 if(EXISTS ${CMAKE_SOURCE_DIR}/test.cpp)
