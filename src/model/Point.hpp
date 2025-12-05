@@ -7,10 +7,10 @@ namespace acacia::model {
 template <typename Coord, size_t Dim>
 class Point
 {
+public:
     using FCoord = float_t<Coord>;
     using Coords = std::array<Coord, Dim>;
-public:
-
+    
     ///@brief constructs a point with all zero coordinates
     Point();
     ///@brief constructs a point with given coordinates
