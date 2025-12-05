@@ -29,7 +29,7 @@ jobs:
         run: export BOOST_PATH=/home/runner/boost_1_83_0/boost/boost && cmake -DBUILD_ACACIA_TEST=ON -DENABLE_EXCEPTION=ON -DENABLE_ASSERTION=ON -DENABLE_ASAN=ON -Bbuild -G Ninja && cmake --build build
 
       - name: Run unit test
-        run: build/bin/unit_test.exe
+        run: build/bin/unit_test
 
       - name: Create pull request
         if: success()
